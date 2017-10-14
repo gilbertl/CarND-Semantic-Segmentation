@@ -44,7 +44,7 @@ def load_vgg(sess, vgg_path):
     vgg_layer7_out = graph.get_tensor_by_name(vgg_layer7_out_tensor_name)
     
     return (vgg_input, vgg_keep_prob, vgg_layer3_out, vgg_layer4_out, vgg_layer7_out)
-tests.test_load_vgg(load_vgg, tf)
+#tests.test_load_vgg(load_vgg, tf)
 
 
 def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
@@ -59,9 +59,13 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     conv7 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, strides=1,
         padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION),
         name="conv7_out")
+    debug = tf.Print(conv7, [tf.shape(conv7)], name="print_conv7_out")
     conv7x2 = tf.layers.conv2d_transpose(conv7, num_classes, 4, strides=2, 
         padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION),
         name="conv7x2_out")
+    debug = tf.Print(debug, [tf.shape(conv7x2)], name="print_conv7x2")
+    return debug
+    """
     skip4 = tf.add(conv7x2, vgg_layer4_out, name="skip4_out")
     skip4x2 = tf.layers.conv2d_transpose(skip4, num_classes, 4, strides=2, 
         padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION),
@@ -72,7 +76,8 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
         name="skip3x4_out")
     
     return skip3x4
-tests.test_layers(layers)
+    """
+#tests.test_layers(layers)
 
 
 def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
@@ -90,7 +95,7 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     train_op = (tf.train.AdamOptimizer(learning_rate)
         .minimize(cross_entropy))
     return logits, train_op, cross_entropy_loss
-tests.test_optimize(optimize)
+#tests.test_optimize(optimize)
 
 
 def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, input_image,
@@ -118,7 +123,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
                     keep_prob: KEEP_PROB,
                     learning_rate: ADAM_OPTIMIZER_LEARNING_RATE})
             print("Epoch {} loss: {}".format(epoch_i, training_loss))
-tests.test_train_nn(train_nn)
+#tests.test_train_nn(train_nn)
 
 
 def run():
@@ -132,7 +137,7 @@ def run():
     image_shape = (160, 576)
     data_dir = './data'
     runs_dir = './runs'
-    tests.test_for_kitti_dataset(data_dir)
+    #tests.test_for_kitti_dataset(data_dir)
 
     correct_labels = tf.placeholder(tf.int64, None)
     learning_rate = tf.placeholder(tf.float32)
@@ -157,6 +162,15 @@ def run():
         image_input, keep_prob, layer3_out, layer4_out, layer7_out = load_vgg(
                 sess, vgg_path)
         fcn32 = layers(layer3_out, layer4_out, layer7_out, num_classes)
+        for images, labels in get_batches_fn(BATCH_SIZE):
+            sess.run([fcn32],
+                feed_dict={
+                    input_image: images,
+                    correct_labels: labels,
+                    keep_prob: KEEP_PROB,
+                    learning_rate: ADAM_OPTIMIZER_LEARNING_RATE})
+            print("Epoch {} loss: {}".format(epoch_i, training_loss))
+        """
         logits, train_op, cross_entropy_loss = optimize(
                 fcn32, correct_labels, learning_rate, num_classes)
         train_nn(sess, NUM_EPOCHS, BATCH_SIZE, 
@@ -168,6 +182,7 @@ def run():
                 logits, keep_prob, input_image)
 
         # OPTIONAL: Apply the trained model to a video
+"""
 
 
 if __name__ == '__main__':
