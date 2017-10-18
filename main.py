@@ -8,7 +8,10 @@ import project_tests as tests
 l2_regularizer = tf.contrib.layers.l2_regularizer
 
 CONV_L2_REGULARIZATION = 1e-3
-
+ADAM_OPTIMIZER_LEARNING_RATE = 0.001  # default
+KEEP_PROB = 0.5
+NUM_EPOCHS = 6
+BATCH_SIZE = 16
 
 # Check TensorFlow Version
 assert LooseVersion(tf.__version__) >= LooseVersion('1.0'), 'Please use TensorFlow version 1.0 or newer.  You are using {}'.format(tf.__version__)
@@ -57,27 +60,21 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     :return: The Tensor for the last layer of output
     """
     conv7 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, strides=1,
-        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION),
-        name="conv7_out")
+        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION))
     #debug = tf.Print(conv7, [tf.shape(conv7)], name="print_conv7_out")
     conv7x2 = tf.layers.conv2d_transpose(conv7, num_classes, 4, strides=2, 
-        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION),
-        name="conv7x2_out")
+        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION))
     #debug = tf.Print(debug, [tf.shape(conv7x2)], name="print_conv7x2")
     vgg_layer4_1x1 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1, strides=1,
-        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION),
-        name="vgg_layer4_1x1_out")
-    skip4 = tf.add(conv7x2, vgg_layer4_1x1, name="skip4_out")
+        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION))  
+    skip4 = tf.add(conv7x2, vgg_layer4_1x1)
     skip4x2 = tf.layers.conv2d_transpose(skip4, num_classes, 4, strides=2, 
-        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION),
-        name="skip4x2_out")
+        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION))
     vgg_layer3_1x1 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1, strides=1,
-        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION),
-        name="vgg_layer3_1x1_out")
-    skip3 = tf.add(skip4x2, vgg_layer3_1x1, name="skip3_out")
+        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION))
+    skip3 = tf.add(skip4x2, vgg_layer3_1x1)
     skip3x4 = tf.layers.conv2d_transpose(skip3, num_classes, 16, strides=8,
-        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION),
-        name="skip3x4_out")
+        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION))
     
     return skip3x4
 tests.test_layers(layers)
@@ -94,9 +91,9 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     """
     logits = tf.reshape(nn_last_layer, (-1, num_classes))
     cross_entropy_loss = tf.reduce_mean(
-        tf.nn.softmax_cross_entropy_with_logits(logits, correct_label))
+        tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=correct_label))
     train_op = (tf.train.AdamOptimizer(learning_rate)
-        .minimize(cross_entropy))
+        .minimize(cross_entropy_loss))
     return logits, train_op, cross_entropy_loss
 tests.test_optimize(optimize)
 
@@ -122,7 +119,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
                 [train_op, cross_entropy_loss], 
                 feed_dict={
                     input_image: images,
-                    correct_labels: labels,
+                    correct_label: labels,
                     keep_prob: KEEP_PROB,
                     learning_rate: ADAM_OPTIMIZER_LEARNING_RATE})
             print("Epoch {} loss: {}".format(epoch_i, training_loss))
@@ -130,12 +127,6 @@ tests.test_train_nn(train_nn)
 
 
 def run():
-    CONV_L2_REGULARIZATION = 1e-3
-    ADAM_OPTIMIZER_LEARNING_RATE = 0.001  # default
-    KEEP_PROB = 0.5
-    NUM_EPOCHS = 6
-    BATCH_SIZE = 16
-
     num_classes = 2
     image_shape = (160, 576)
     data_dir = './data'
@@ -165,6 +156,7 @@ def run():
         image_input, keep_prob, layer3_out, layer4_out, layer7_out = load_vgg(
                 sess, vgg_path)
         sess.run(tf.global_variables_initializer())
+        sess.run(tf.local_variables_initializer())
 
         fcn32 = layers(layer3_out, layer4_out, layer7_out, num_classes)
         logits, train_op, cross_entropy_loss = optimize(
