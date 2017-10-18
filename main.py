@@ -64,11 +64,17 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
         padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION),
         name="conv7x2_out")
     #debug = tf.Print(debug, [tf.shape(conv7x2)], name="print_conv7x2")
-    skip4 = tf.add(conv7x2, vgg_layer4_out, name="skip4_out")
+    vgg_layer4_1x1 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1, strides=1,
+        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION),
+        name="vgg_layer4_1x1_out")
+    skip4 = tf.add(conv7x2, vgg_layer4_1x1, name="skip4_out")
     skip4x2 = tf.layers.conv2d_transpose(skip4, num_classes, 4, strides=2, 
         padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION),
         name="skip4x2_out")
-    skip3 = tf.add(skip4x2, vgg_layer3_out, name="skip3_out")
+    vgg_layer3_1x1 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1, strides=1,
+        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION),
+        name="vgg_layer3_1x1_out")
+    skip3 = tf.add(skip4x2, vgg_layer3_1x1, name="skip3_out")
     skip3x4 = tf.layers.con2d_transpose(skip3, num_classes, 16, strides=8,
         padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION),
         name="skip3x4_out")
