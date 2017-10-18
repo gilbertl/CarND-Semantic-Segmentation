@@ -149,8 +149,6 @@ def run():
     # You'll need a GPU with at least 10 teraFLOPS to train on.
     #  https://www.cityscapes-dataset.com/
 
-    init_op = tf.global_variables_initializer()
-
     with tf.Session() as sess:
         # Path to vgg model
         vgg_path = os.path.join(data_dir, 'vgg')
@@ -163,7 +161,7 @@ def run():
 
         image_input, keep_prob, layer3_out, layer4_out, layer7_out = load_vgg(
                 sess, vgg_path)
-        sess.run(init_op)
+        sess.run(tf.global_variables_initializer())
 
         fcn32 = layers(layer3_out, layer4_out, layer7_out, num_classes)
         for images, labels in get_batches_fn(BATCH_SIZE):
