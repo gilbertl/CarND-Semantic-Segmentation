@@ -165,7 +165,7 @@ def run():
         for images, labels in get_batches_fn(BATCH_SIZE):
             sess.run([fcn32],
                 feed_dict={
-                    input_image: images,
+                    image_input: images,
                     correct_labels: labels,
                     keep_prob: KEEP_PROB,
                     learning_rate: ADAM_OPTIMIZER_LEARNING_RATE})
