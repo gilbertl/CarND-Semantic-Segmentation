@@ -98,7 +98,7 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     train_op = (tf.train.AdamOptimizer(learning_rate)
         .minimize(cross_entropy))
     return logits, train_op, cross_entropy_loss
-ests.test_optimize(optimize)
+tests.test_optimize(optimize)
 
 
 def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, input_image,
