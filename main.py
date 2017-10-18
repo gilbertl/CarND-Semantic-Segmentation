@@ -155,19 +155,19 @@ def run():
 
         image_input, keep_prob, layer3_out, layer4_out, layer7_out = load_vgg(
                 sess, vgg_path)
-        sess.run(tf.global_variables_initializer())
-        sess.run(tf.local_variables_initializer())
-
         fcn32 = layers(layer3_out, layer4_out, layer7_out, num_classes)
         logits, train_op, cross_entropy_loss = optimize(
                 fcn32, correct_labels, learning_rate, num_classes)
+        sess.run(tf.global_variables_initializer())
+        sess.run(tf.local_variables_initializer())
+
         train_nn(sess, NUM_EPOCHS, BATCH_SIZE, 
                 get_batches_fn, train_op, cross_entropy_loss, 
                 image_input, correct_labels, keep_prob, learning_rate)
 
         # TODO: Save inference data using helper.save_inference_samples
         helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, 
-                logits, keep_prob, input_image)
+                logits, keep_prob, image_input)
 
         # OPTIONAL: Apply the trained model to a video
 
