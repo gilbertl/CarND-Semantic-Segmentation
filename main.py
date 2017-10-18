@@ -131,7 +131,7 @@ def run():
     ADAM_OPTIMIZER_LEARNING_RATE = 0.001  # default
     KEEP_PROB = 0.5
     NUM_EPOCHS = 6
-    BATCH_SIZE = 1
+    BATCH_SIZE = 16
 
     num_classes = 2
     image_shape = (160, 576)
