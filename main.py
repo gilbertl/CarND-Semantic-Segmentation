@@ -75,7 +75,7 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
         padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION),
         name="vgg_layer3_1x1_out")
     skip3 = tf.add(skip4x2, vgg_layer3_1x1, name="skip3_out")
-    skip3x4 = tf.layers.con2d_transpose(skip3, num_classes, 16, strides=8,
+    skip3x4 = tf.layers.conv2d_transpose(skip3, num_classes, 16, strides=8,
         padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION),
         name="skip3x4_out")
     
