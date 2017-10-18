@@ -161,10 +161,10 @@ def run():
         # OPTIONAL: Augment Images for better results
         #  https://datascience.stackexchange.com/questions/5224/how-to-prepare-augment-images-for-neural-network
 
-        sess.run(init_op)
-
         image_input, keep_prob, layer3_out, layer4_out, layer7_out = load_vgg(
                 sess, vgg_path)
+        sess.run(init_op)
+
         fcn32 = layers(layer3_out, layer4_out, layer7_out, num_classes)
         for images, labels in get_batches_fn(BATCH_SIZE):
             sess.run([fcn32],
