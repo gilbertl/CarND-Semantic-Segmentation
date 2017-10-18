@@ -8,9 +8,10 @@ import project_tests as tests
 l2_regularizer = tf.contrib.layers.l2_regularizer
 
 CONV_L2_REGULARIZATION = 1e-3
-ADAM_OPTIMIZER_LEARNING_RATE = 0.001  # default
-KEEP_PROB = 0.5
-NUM_EPOCHS = 6
+CONV_INIT_STDDEV = 0.01
+ADAM_OPTIMIZER_LEARNING_RATE = 0.0001
+KEEP_PROB = 0.6
+NUM_EPOCHS = 24
 BATCH_SIZE = 16
 
 # Check TensorFlow Version
@@ -60,21 +61,27 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     :return: The Tensor for the last layer of output
     """
     conv7 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, strides=1,
-        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION))
+        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION),
+        kernel_initializer=tf.truncated_normal_initializer(stddev=CONV_INIT_STDDEV))
     #debug = tf.Print(conv7, [tf.shape(conv7)], name="print_conv7_out")
     conv7x2 = tf.layers.conv2d_transpose(conv7, num_classes, 4, strides=2, 
-        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION))
+        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION),  
+        kernel_initializer=tf.truncated_normal_initializer(stddev=CONV_INIT_STDDEV))
     #debug = tf.Print(debug, [tf.shape(conv7x2)], name="print_conv7x2")
     vgg_layer4_1x1 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1, strides=1,
-        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION))  
+        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION),  
+        kernel_initializer=tf.truncated_normal_initializer(stddev=CONV_INIT_STDDEV))
     skip4 = tf.add(conv7x2, vgg_layer4_1x1)
     skip4x2 = tf.layers.conv2d_transpose(skip4, num_classes, 4, strides=2, 
-        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION))
+        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION),  
+        kernel_initializer=tf.truncated_normal_initializer(stddev=CONV_INIT_STDDEV))
     vgg_layer3_1x1 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1, strides=1,
-        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION))
+        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION),
+        kernel_initializer=tf.truncated_normal_initializer(stddev=CONV_INIT_STDDEV))
     skip3 = tf.add(skip4x2, vgg_layer3_1x1)
     skip3x4 = tf.layers.conv2d_transpose(skip3, num_classes, 16, strides=8,
-        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION))
+        padding="same", kernel_regularizer=l2_regularizer(CONV_L2_REGULARIZATION),
+        kernel_initializer=tf.truncated_normal_initializer(stddev=CONV_INIT_STDDEV))
     
     return skip3x4
 tests.test_layers(layers)
@@ -122,7 +129,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
                     correct_label: labels,
                     keep_prob: KEEP_PROB,
                     learning_rate: ADAM_OPTIMIZER_LEARNING_RATE})
-            print("Epoch {} loss: {}".format(epoch_i, training_loss))
+        print("Epoch {} loss: {}".format(epoch_i, training_loss))
 tests.test_train_nn(train_nn)
 
 
@@ -164,6 +171,8 @@ def run():
         train_nn(sess, NUM_EPOCHS, BATCH_SIZE, 
                 get_batches_fn, train_op, cross_entropy_loss, 
                 image_input, correct_labels, keep_prob, learning_rate)
+
+        print("Ran w/ drop out: {}, learning rate: {}".format(KEEP_PROB, ADAM_OPTIMIZER_LEARNING_RATE))
 
         # TODO: Save inference data using helper.save_inference_samples
         helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, 
