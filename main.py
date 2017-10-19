@@ -2,6 +2,7 @@ import os.path
 import tensorflow as tf
 import helper
 import warnings
+import sys
 from distutils.version import LooseVersion
 import project_tests as tests
 
@@ -130,6 +131,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
                     keep_prob: KEEP_PROB,
                     learning_rate: ADAM_OPTIMIZER_LEARNING_RATE})
         print("Epoch {} loss: {}".format(epoch_i, training_loss))
+        sys.stdout.flush()
 tests.test_train_nn(train_nn)
 
 
@@ -157,9 +159,6 @@ def run():
         get_batches_fn = helper.gen_batch_function(
                 os.path.join(data_dir, 'data_road/training'), image_shape)
 
-        # OPTIONAL: Augment Images for better results
-        #  https://datascience.stackexchange.com/questions/5224/how-to-prepare-augment-images-for-neural-network
-
         image_input, keep_prob, layer3_out, layer4_out, layer7_out = load_vgg(
                 sess, vgg_path)
         fcn32 = layers(layer3_out, layer4_out, layer7_out, num_classes)
@@ -174,7 +173,6 @@ def run():
 
         print("Ran w/ drop out: {}, learning rate: {}".format(KEEP_PROB, ADAM_OPTIMIZER_LEARNING_RATE))
 
-        # TODO: Save inference data using helper.save_inference_samples
         helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, 
                 logits, keep_prob, image_input)
 
