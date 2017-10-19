@@ -12,7 +12,8 @@ CONV_L2_REGULARIZATION = 1e-3
 CONV_INIT_STDDEV = 0.01
 ADAM_OPTIMIZER_LEARNING_RATE = 0.0001
 KEEP_PROB = 0.6
-NUM_EPOCHS = 24
+# NUM_EPOCHS = 24
+NUM_EPOCHS = 1
 BATCH_SIZE = 16
 
 # Check TensorFlow Version
@@ -136,7 +137,7 @@ tests.test_train_nn(train_nn)
 
 
 def run():
-    num_classes = 2
+    num_classes = 3
     image_shape = (160, 576)
     data_dir = './data'
     runs_dir = './runs'
