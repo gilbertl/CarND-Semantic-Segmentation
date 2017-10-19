@@ -76,16 +76,23 @@ def gen_batch_function(data_folder, image_shape):
             re.sub(r'_(lane|road)_', '_', os.path.basename(path)): path
             for path in glob(os.path.join(data_folder, 'gt_image_2', '*_road_*.png'))}
         background_color = np.array([255, 0, 0])
+        image_combinations = [(path, flip_image) 
+                              for path in image_paths
+                              for flip_image in [True, False]]
 
-        random.shuffle(image_paths)
-        for batch_i in range(0, len(image_paths), batch_size):
+        random.shuffle(image_combinations)
+        for batch_i in range(0, len(image_combinations), batch_size):
             images = []
             gt_images = []
-            for image_file in image_paths[batch_i:batch_i+batch_size]:
+            for image_file, flip_image in image_combinations[batch_i:batch_i+batch_size]:
                 gt_image_file = label_paths[os.path.basename(image_file)]
 
                 image = scipy.misc.imresize(scipy.misc.imread(image_file), image_shape)
                 gt_image = scipy.misc.imresize(scipy.misc.imread(gt_image_file), image_shape)
+
+                if flip_image:
+                    image = np.fliplr(image)
+                    gt_image = np.fliplr(gt_image)
 
                 gt_bg = np.all(gt_image == background_color, axis=2)
                 gt_bg = gt_bg.reshape(*gt_bg.shape, 1)
